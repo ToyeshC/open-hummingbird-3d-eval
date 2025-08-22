@@ -142,26 +142,6 @@ class HbirdEvaluation():
                     one_hot_patch_gt = F.one_hot(patchified_gts, num_classes=num_classes).float()
                     label = one_hot_patch_gt.mean(dim=3)
 
-                    # ToDo: Can we remove that?
-                    # ---------------- debugging
-                    # if i == 0 and j == 0:
-
-                    #     print("CREATE MEM ")
-                    #     # print('one_hot_patch_gt : ' , one_hot_patch_gt)
-                    #     print('patchified_gts shape : ' , patchified_gts.shape)
-                    #     print()
-                    #     print('one_hot_patch_gt shape : ' , one_hot_patch_gt.shape)
-                    # print('one_hot_patch_gt unique : ' ,  torch.unique(one_hot_patch_gt))
-                    #     print('one_hot_patch_gt sum 0 : ' ,  torch.sum(one_hot_patch_gt[:, :, : , :, 0]))
-                    #     print('one_hot_patch_gt sum 1 : ' ,  torch.sum(one_hot_patch_gt[:, :, : , :, 1]))
-                    #     print()
-                    #     # print('label : ', label)
-                    #     print('label shape : ', label.shape)
-                    #     print('label unique : ' ,  torch.unique(label))
-                    #     print('label sum 0 : ' ,  torch.sum(label[:, :, : ,0]))
-                    #     print('label sum 1 : ' ,  torch.sum(label[:, :, : ,1]))
-                    # ----------------
-                    
                     if self.memory_size is None:
                         # Memory Size is unbounded so we store all the features
                         normalized_features = features / torch.norm(features, dim=2, keepdim=True)
@@ -415,47 +395,6 @@ class HbirdEvaluation():
                 q = features.clone().detach()
                 key_features, key_labels = self.find_nearest_key_to_query(q)           
                 label_hat = self.cross_attention(features, key_features, key_labels)
-
-                # ToDo: Can remove that?
-                # ----------------- debugging
-                # # x is the input image
-                # # y is the input mask 
-                # if i == 0:
-                #     print("PART 0")
-
-                #     print('feauture:', self.feature_memory)
-                #     print('feauture unique:', torch.unique(self.feature_memory))
-                #     print('feautureshape:', self.feature_memory.shape)
-
-                #     print('memory label :', self.label_memory)
-                #     print('memory label unique:', torch.unique(self.label_memory))
-                #     print('memory label shape:', self.label_memory.shape)
-                #     print('memory label sum 0:', torch.sum(self.label_memory[:, 0]))
-                #     print('memory label sum 1:', torch.sum(self.label_memory[:, 1]))
-                #     print()
-                #     print()
-                #     print('input image :' , x)
-                #     print('input image shape :' , x.shape)
-                #     print('input image unique :' , torch.unique(x))
-
-                #     print('mask  :' , y)
-                #     print('mask shape :' , y.shape)
-                #     print('mask unique :' , torch.unique(y))
-
-                #     print()
-                #     print('key_labels unique: ', np.unique(key_labels))
-                #     print('key_labels shape : ', key_labels.shape)
-
-                #     print('key_features unique  : ', np.unique(key_features))
-                #     print('key_features shape : ', key_features.shape)
-
-                #     print('q  unique : ', np.unique(q))
-                #     print('q shape : ', q.shape)
-
-                #     print('label hat unique : ', np.unique(label_hat))
-                #     print('label hat shape : ', label_hat.shape)
-                #     print()
-                # ---------------------
 
                 if return_knn_details:
                     knns.append(key_features.detach())
