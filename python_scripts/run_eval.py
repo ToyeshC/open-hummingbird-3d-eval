@@ -4,11 +4,128 @@ import random
 import argparse
 import numpy as np
 import math
+
 import torch
 import torch.nn.functional as F
 from transformers import CLIPModel, AutoModel
 
 from hbird.hbird_eval import hbird_evaluation
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="HummingBird Evaluation")
+
+    parser.add_argument(
+        "--seed", default=42, type=int, help="Random seed for reproducibility"
+    )
+
+    # Model arguments
+    parser.add_argument(
+        "--model_repo",
+        default=None,
+        type=str,
+        help="Torch Hub repo or HuggingFace repo ID",
+    )
+    parser.add_argument(
+        "--model_name",
+        default=None,
+        type=str,
+        help="Model name for torch.hub (e.g. dino_vits16)",
+    )
+    parser.add_argument(
+        "--d_model",
+        default=None,
+        type=int,
+        help="Size of the embedding feature vectors",
+    )
+    parser.add_argument(
+        "--revision",
+        default=None,
+        type=str,
+        help="(HuggingFace only) Commit hash, tag, or branch to pin model version",
+    )
+
+    # Input & patching
+    parser.add_argument(
+        "--input_size", default=None, type=int, help="Size of the input image"
+    )
+    parser.add_argument(
+        "--patch_size", default=None, type=int, help="Size of the model patch"
+    )
+
+    # Dataset arguments
+    parser.add_argument(
+        "--data_dir", default=None, type=str, help="Path to the dataset root"
+    )
+    parser.add_argument(
+        "--dataset_name",
+        default=None,
+        type=str,
+        help="Dataset name (e.g. voc, mvimgnet)",
+    )
+    parser.add_argument(
+        "--train_fs_path", default=None, type=str, help="Path to train file list"
+    )
+    parser.add_argument(
+        "--val_fs_path", default=None, type=str, help="Path to validation file list"
+    )
+    # MVImgNet Dataset specific arguments
+    parser.add_argument(
+        "--train_bins",
+        type=str,
+        default=None,
+        help="(MVImgNet only) Training angle bins as comma-sep list like 0,15,30",
+    )
+    parser.add_argument(
+        "--val_bins",
+        type=str,
+        default=None,
+        help="(MVImgNet only) Validation angle bins as comma-sep list like 0,15,30",
+    )
+
+    # Evaluation behavior
+    parser.add_argument(
+        "--batch_size", default=64, type=int, help="Batch size for evaluation"
+    )
+    parser.add_argument(
+        "--augmentation_epoch",
+        default=1,
+        type=int,
+        help="Number of augmentation passes over training data",
+    )
+    parser.add_argument(
+        "--memory_size", default=None, type=int, help="Optional memory size cap"
+    )
+    parser.add_argument(
+        "--num_workers", default=None, type=int, help="Num workers for DataLoader"
+    )
+
+    # Nearest neighbor search
+    parser.add_argument(
+        "--n_neighbours",
+        default=30,
+        type=int,
+        help="Number of neighbors to use in k-NN search",
+    )
+    parser.add_argument(
+        "--nn_method",
+        default="faiss",
+        type=str,
+        help="Method for nearest neighbor search",
+    )
+    parser.add_argument(
+        "--nn_params",
+        default=None,
+        type=str,
+        help="JSON string for nearest neighbor parameters",
+    )
+    parser.add_argument(
+        "--return_knn_details",
+        action=None,
+        help="Whether to return details of k-NN results",
+    )
+
+    return parser.parse_args()
 
 
 def seed_everything(seed: int):
@@ -27,16 +144,18 @@ def _resize(tensor, new_g: int, old_g: int):
       - area interpolation when reducing size
     """
     if new_g > old_g:
-        return F.interpolate(tensor, (new_g, new_g),
-                             mode="bicubic", align_corners=False)
+        return F.interpolate(
+            tensor, (new_g, new_g), mode="bicubic", align_corners=False
+        )
     return F.interpolate(tensor, (new_g, new_g), mode="area")
 
-def interpolate_pos_embed(model, img_size: int, patch_size: int) -> None:    
+
+def interpolate_pos_embed(model, img_size: int, patch_size: int) -> None:
     """
     Resize absolute position embeddings in the model to match the new grid size (img_size // patch_size).
     Supports both standard ViT-style (with or without CLS token - the global summary token) and HuggingFace CLIP-style embeddings.
     No changes if the current grid already matches the target size or is not square.
-    
+
     Note: anything but Tips can be interpolated automatically as well.
     """
     new_grid = img_size // patch_size
@@ -68,10 +187,9 @@ def interpolate_pos_embed(model, img_size: int, patch_size: int) -> None:
         pe = getattr(emb, "position_embedding", None)
 
         if pe is not None:
-
             w = pe.weight  # (1+N, D)
             has_cls = w.shape[0] % 2 == 1
-            cls_w   = w[:1] if has_cls else None
+            cls_w = w[:1] if has_cls else None
             patch_w = w[1:] if has_cls else w
             old_grid = int(math.sqrt(patch_w.shape[0]))
 
@@ -85,8 +203,9 @@ def interpolate_pos_embed(model, img_size: int, patch_size: int) -> None:
                 emb.position_embedding.weight = torch.nn.Parameter(new_pe.detach())
 
                 # Sync buffers
-                emb.position_ids = torch.arange(new_pe.shape[0],
-                                                device=new_pe.device).unsqueeze(0)
+                emb.position_ids = torch.arange(
+                    new_pe.shape[0], device=new_pe.device
+                ).unsqueeze(0)
                 emb.position_embedding.num_embeddings = new_pe.shape[0]
 
             # Lift CLIP's hard guard
@@ -95,9 +214,10 @@ def interpolate_pos_embed(model, img_size: int, patch_size: int) -> None:
             if hasattr(model.config, "vision_config"):
                 model.config.vision_config.image_size = img_size
 
+
 def load_model(args):
     """
-    Load a vision model from HuggingFace, torch.hub, or a local TIPS repo, 
+    Load a vision model from HuggingFace, torch.hub, or a local TIPS repo,
     and interpolate (resize) positional embeddings to match the input size.
     """
     repo = args.model_repo.lower()
@@ -149,31 +269,44 @@ def load_model(args):
     # --- Loaded from local TIPS repo ---
     elif "tips" in repo.lower():
         try:
-            from tips.pytorch import image_encoder  # don't forget to add Tips to the the path before running this script
+            from tips.pytorch import (
+                image_encoder,
+            )  # don't forget to add Tips to the the path before running this script
 
-            print(f"Loading the TIPS model from a local repo")
+            print("Loading the TIPS model from a local repo")
 
             # Load the weights from one of the downloaded checkpoints
             key = repo.split("tips-")[-1]
             ckpt_dir = "../tips/pytorch/checkpoints"
             ckpt_map = {
-                "s14": ("tips_oss_s14_highres_distilled_vision.npz", image_encoder.vit_small),
-                "b14": ("tips_oss_b14_highres_distilled_vision.npz", image_encoder.vit_base),
-                "l14": ("tips_oss_l14_highres_distilled_vision.npz", image_encoder.vit_large),
-                "g14": ("tips_oss_g14_highres_vision.npz",          image_encoder.vit_giant2),
-                "so400m14": ("tips_oss_so400m14_highres_largetext_distilled_vision.npz",
-                            image_encoder.vit_so400m),
+                "s14": (
+                    "tips_oss_s14_highres_distilled_vision.npz",
+                    image_encoder.vit_small,
+                ),
+                "b14": (
+                    "tips_oss_b14_highres_distilled_vision.npz",
+                    image_encoder.vit_base,
+                ),
+                "l14": (
+                    "tips_oss_l14_highres_distilled_vision.npz",
+                    image_encoder.vit_large,
+                ),
+                "g14": ("tips_oss_g14_highres_vision.npz", image_encoder.vit_giant2),
+                "so400m14": (
+                    "tips_oss_so400m14_highres_largetext_distilled_vision.npz",
+                    image_encoder.vit_so400m,
+                ),
             }
             if key not in ckpt_map:
                 raise ValueError(f"Unknown TIPS variant '{key}'")
             ckpt_path, builder = ckpt_map[key]
             weights_np = np.load(f"{ckpt_dir}/{ckpt_path}", allow_pickle=False)
             weights = {k: torch.tensor(v) for k, v in weights_np.items()}
-            
+
             # Derive native pixel size from pos_embed
             # print("weights_np['pos_embed'].shape", weights_np["pos_embed"].shape)  # (1, 1+G^2, D)
-            pos_len   = weights_np["pos_embed"].shape[1]  # 1 + G^2
-            train_g   = int((pos_len - 1) ** 0.5)  # e.g. 32
+            pos_len = weights_np["pos_embed"].shape[1]  # 1 + G^2
+            train_g = int((pos_len - 1) ** 0.5)  # e.g. 32
             native_px = train_g * args.patch_size  # 32x14 = 448
             # print(f"Training grid size: {train_g} (px)")
             # print(f"Training image size: {native_px} (px)")
@@ -211,7 +344,7 @@ def load_model(args):
     return model.eval()
 
 
-def token_features(model, imgs):
+def token_features(args, model, imgs):
     """
     Extracts patch-level features [B, N, D] from the given vision model,
     excluding CLS tokens unless required.
@@ -222,26 +355,30 @@ def token_features(model, imgs):
     - RADIO: returns (summary, spatial) → we use spatial tokens
     - TIPS: returns (CLS, logits, spatial) → we use spatial tokens [B, N, D]
     """
-    
+
     # Unwrap model if it's wrapped in DataParallel
     model = model.module if hasattr(model, "module") else model
-    
+
     if "dinov2" in args.model_repo.lower():
         # DINOv2 returns patch tokens only (no CLS) under 'x_norm_patchtokens'
         # Shape: [B, N, D]
-        return model.forward_features(imgs)['x_norm_patchtokens'], None
+        return model.forward_features(imgs)["x_norm_patchtokens"], None
 
     elif "clip" in args.model_repo.lower():
         # CLIP returns [CLS] + patch tokens → we remove CLS
         # Shape of last_hidden: [B, N+1, D], return [B, N, D]
-        vision_outputs = model.vision_model(pixel_values=imgs, output_hidden_states=True)
+        vision_outputs = model.vision_model(
+            pixel_values=imgs, output_hidden_states=True
+        )
         last_hidden = vision_outputs.hidden_states[-1]
         return last_hidden[:, 1:], None
 
     elif "siglip" in args.model_repo.lower():
         # SigLIP returns only patch tokens (no CLS)
         # Shape: [B, N, D]
-        vision_outputs = model.vision_model(pixel_values=imgs, output_hidden_states=True)
+        vision_outputs = model.vision_model(
+            pixel_values=imgs, output_hidden_states=True
+        )
         last_hidden = vision_outputs.hidden_states[-1]
         return last_hidden, None
 
@@ -271,34 +408,46 @@ def token_features(model, imgs):
         # Shape: [B, N+1, D] → return [B, N, D]
         return model.get_intermediate_layers(imgs)[0][:, 1:], None
 
-def main(args):
-    print(f"The script arguments are {args}")
+
+def main():
+    args = parse_args()
+    print("Args:", args)
+
+    seed_everything(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = load_model(args)
-    
-    if torch.cuda.device_count() > 1:  # make all GPUs work in parallel on the batch (if more than 1 GPU is available)
+
+    if (
+        torch.cuda.device_count() > 1
+    ):  # make all GPUs work in parallel on the batch (if more than 1 GPU is available)
         print(f"Using DataParallel with {torch.cuda.device_count()} GPUs.")
         model = torch.nn.DataParallel(model)
 
     model = model.to(device)
 
     if hasattr(model, "interpolate_pos_encoding"):
-        print("The model is loaded from Hugging Face and supports auto embedding interpolation, \n"
-              "however manual embedding interpolation will be applied if the input_size provided does not match \n" \
-              "the input_size on which the model was trained.")
+        print(
+            "The model is loaded from Hugging Face and supports auto embedding interpolation, \n"
+            "however manual embedding interpolation will be applied if the input_size provided does not match \n"
+            "the input_size on which the model was trained."
+        )
     else:
-        print("The model does not support automatic embedding interpolation, \n"
-              "but manual embedding interpolation will be applied if the input_size provided does not match \n" \
-              "the input_size on which the model was trained.")
-        
+        print(
+            "The model does not support automatic embedding interpolation, \n"
+            "but manual embedding interpolation will be applied if the input_size provided does not match \n"
+            "the input_size on which the model was trained."
+        )
+
     if args.nn_params:
         try:
             nn_params = json.loads(args.nn_params)
         except json.JSONDecodeError:
-            raise ValueError("Invalid format for --nn_params. Provide a valid JSON string.")
+            raise ValueError(
+                "Invalid format for --nn_params. Provide a valid JSON string."
+            )
     else:
         nn_params = {}
-    
+
     # Decide whether to enable FAISS sharding (moves faiss index to multiple GPUs and helps with OOM errors)
     num_gpus = torch.cuda.device_count()
     if str(device) == "cuda" and args.nn_method == "faiss" and num_gpus > 1:
@@ -307,17 +456,27 @@ def main(args):
     else:
         print(f"FAISS sharding not used (device: {device}, GPUs available: {num_gpus})")
 
+    def token_features_fn(model, imgs):
+        """
+        Wrapper function for passing `args` to `token_features`.
+        """
+
+        return token_features(args, model, imgs)
 
     # Handle MVImgNet angle bin parsing
     if args.dataset_name.lower() == "mvimgnet":
-        assert args.train_bins is not None, "You must specify --train_bins for mvimgnet."
+        assert args.train_bins is not None, (
+            "You must specify --train_bins for mvimgnet."
+        )
         assert args.val_bins is not None, "You must specify --val_bins for mvimgnet."
 
-        train_bins_list = args.train_bins.split(',')
-        val_bins_list = args.val_bins.split(',')
+        train_bins_list = args.train_bins.split(",")
+        val_bins_list = args.val_bins.split(",")
 
-        assert type(train_bins_list) == list, "train_bins must be a comma-separated list."
-        assert type(val_bins_list) == list, "val_bins must be a comma-separated list."
+        assert type(train_bins_list) is list, (
+            "train_bins must be a comma-separated list."
+        )
+        assert type(val_bins_list) is list, "val_bins must be a comma-separated list."
 
         print(f"📦 MVImgNet → Train bins: {train_bins_list}")
         print(f"📦 MVImgNet → Val bins:   {val_bins_list}")
@@ -334,7 +493,7 @@ def main(args):
             nn_method=args.nn_method,
             n_neighbours=args.n_neighbours,
             nn_params=nn_params,
-            ftr_extr_fn=token_features,
+            ftr_extr_fn=token_features_fn,
             dataset_name=args.dataset_name,
             data_dir=args.data_dir,
             memory_size=args.memory_size,
@@ -344,7 +503,9 @@ def main(args):
             train_bins=train_bins_list,
             val_bins=val_bins_list,
         )
-        print(f"val_bin(s) : {val_bins_list},  Hummingbird Evaluation (mIoU): {np.mean(hbird_miou_list)}")
+        print(
+            f"val_bin(s): {val_bins_list}, Hummingbird Evaluation (mIoU): {np.mean(hbird_miou_list)}"
+        )
         print(f"Hummingbird Evaluation (mIoU) per class: {hbird_miou_list}")
 
     else:
@@ -360,7 +521,7 @@ def main(args):
             nn_method=args.nn_method,
             n_neighbours=args.n_neighbours,
             nn_params=nn_params,
-            ftr_extr_fn=token_features,
+            ftr_extr_fn=token_features_fn,
             dataset_name=args.dataset_name,
             data_dir=args.data_dir,
             memory_size=args.memory_size,
@@ -372,59 +533,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="HummingBird Evaluation")
-
-    # Reproducibility
-    parser.add_argument("--seed", default=42, type=int, help="Random seed for reproducibility")
-
-    # Model arguments
-    parser.add_argument("--model_repo", default=None, type=str,
-                        help="Torch Hub repo or HuggingFace repo ID")
-    parser.add_argument("--model_name", default=None, type=str,
-                        help="Model name for torch.hub (e.g. dino_vits16)")
-    parser.add_argument("--d_model", default=None, type=int,
-                        help="Size of the embedding feature vectors")
-    parser.add_argument("--revision", default=None, type=str,
-                    help="(HuggingFace only) Commit hash, tag, or branch to pin model version")
-
-    # Input & patching
-    parser.add_argument("--input_size", default=None, type=int, help="Size of the input image")
-    parser.add_argument("--patch_size", default=None, type=int, help="Size of the model patch")
-
-    # Dataset arguments
-    parser.add_argument("--data_dir", default=None, type=str,
-                        help="Path to the dataset root")
-    parser.add_argument("--dataset_name", default=None, type=str, help="Dataset name (e.g. voc, mvimgnet)")
-    parser.add_argument("--train_fs_path", default=None, type=str,
-                        help="Path to train file list")
-    parser.add_argument("--val_fs_path", default=None, type=str,
-                        help="Path to validation file list")
-    # MVImgNet Dataset specific arguments
-    parser.add_argument("--train_bins", type=str, default=None,
-                        help="(MVImgNet only) Training angle bins as comma-sep list like 0,15,30")
-    parser.add_argument("--val_bins", type=str, default=None,
-                        help="(MVImgNet only) Validation angle bins as comma-sep list like 0,15,30")
-
-    # Evaluation behavior
-    parser.add_argument("--batch_size", default=64, type=int, help="Batch size for evaluation")
-    parser.add_argument("--augmentation_epoch", default=1, type=int,
-                        help="Number of augmentation passes over training data")
-    parser.add_argument("--memory_size", default=None, type=int,
-                        help="Optional memory size cap")
-    parser.add_argument("--num_workers", default=None, type=int, help="Num workers for DataLoader")
-
-    # Nearest neighbor search
-    parser.add_argument("--n_neighbours", default=30, type=int,
-                        help="Number of neighbors to use in k-NN search")
-    parser.add_argument("--nn_method", default="faiss", type=str,
-                        help="Method for nearest neighbor search")
-    parser.add_argument("--nn_params", default=None, type=str,
-                        help="JSON string for nearest neighbor parameters")
-    parser.add_argument("--return_knn_details", action=None,
-                        help="Whether to return details of k-NN results")
-
-    args = parser.parse_args()
-
-    seed_everything(args.seed)
-
-    main(args)
+    main()
