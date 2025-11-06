@@ -1,0 +1,51 @@
+CUDA_VISIBLE_DEVICES=0,1,2,3
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+2025-11-05 14:50:11.694959: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-11-05 14:50:11.777162: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1762350611.820008 2988335 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1762350611.831918 2988335 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2025-11-05 14:50:11.909268: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Args: Namespace(seed=42, model_repo='openai/clip-vit-base-patch16', model_name='', d_model=768, revision=None, input_size=512, patch_size=16, data_dir='./datasets/split_angles_mvimagenet', dataset_name='mvimgnet', train_fs_path=None, val_fs_path=None, train_bins='90', val_bins='0', batch_size=64, augmentation_epoch=1, memory_size=None, num_workers=32, n_neighbours=30, nn_method='faiss', nn_params=None, return_knn_details=None)
+Loading model from Hugging Face: openai/clip-vit-base-patch16
+Traceback (most recent call last):
+  File "/gpfs/home2/jbibo/open-hummingbird-eval/python_scripts/run_eval.py", line 536, in <module>
+    main()
+  File "/gpfs/home2/jbibo/open-hummingbird-eval/python_scripts/run_eval.py", line 418, in main
+    model = load_model(args)
+            ^^^^^^^^^^^^^^^^
+  File "/gpfs/home2/jbibo/open-hummingbird-eval/python_scripts/run_eval.py", line 233, in load_model
+    model = CLIPModel.from_pretrained(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jbibo/.local/lib/python3.11/site-packages/transformers/modeling_utils.py", line 277, in _wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jbibo/.local/lib/python3.11/site-packages/transformers/modeling_utils.py", line 5048, in from_pretrained
+    ) = cls._load_pretrained_model(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jbibo/.local/lib/python3.11/site-packages/transformers/modeling_utils.py", line 5316, in _load_pretrained_model
+    load_state_dict(checkpoint_files[0], map_location="meta", weights_only=weights_only).keys()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jbibo/.local/lib/python3.11/site-packages/transformers/modeling_utils.py", line 508, in load_state_dict
+    check_torch_load_is_safe()
+  File "/home/jbibo/.local/lib/python3.11/site-packages/transformers/utils/import_utils.py", line 1647, in check_torch_load_is_safe
+    raise ValueError(
+ValueError: Due to a serious vulnerability issue in `torch.load`, even with `weights_only=True`, we now require users to upgrade torch to at least v2.6 in order to use the function. This version restriction does not apply when loading files with safetensors.
+See the vulnerability report here https://nvd.nist.gov/vuln/detail/CVE-2025-32434
+srun: error: gcn54: task 0: Exited with exit code 1
+srun: Terminating StepId=15774916.0

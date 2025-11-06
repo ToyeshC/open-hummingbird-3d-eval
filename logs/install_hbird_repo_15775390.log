@@ -1,0 +1,39 @@
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+Defaulting to user installation because normal site-packages is not writeable
+Obtaining file:///gpfs/home2/jbibo/open-hummingbird-eval
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Requirement already satisfied: joblib==1.4.2 in /home/jbibo/.local/lib/python3.11/site-packages (from open-hummingbird-eval==1.0.0) (1.4.2)
+Requirement already satisfied: scipy==1.15.2 in /home/jbibo/.local/lib/python3.11/site-packages (from open-hummingbird-eval==1.0.0) (1.15.2)
+Collecting triton==2.2.0 (from open-hummingbird-eval==1.0.0)
+  Obtaining dependency information for triton==2.2.0 from https://files.pythonhosted.org/packages/bd/ac/3974caaa459bf2c3a244a84be8d17561f631f7d42af370fc311defeca2fb/triton-2.2.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata
+  Downloading triton-2.2.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.4 kB)
+Requirement already satisfied: numpy==1.26.4 in /home/jbibo/.local/lib/python3.11/site-packages (from open-hummingbird-eval==1.0.0) (1.26.4)
+Requirement already satisfied: tqdm==4.67.1 in /home/jbibo/.local/lib/python3.11/site-packages (from open-hummingbird-eval==1.0.0) (4.67.1)
+Requirement already satisfied: filelock in /sw/arch/RHEL8/EB_production/2023/software/Anaconda3/2023.07-2/lib/python3.11/site-packages (from triton==2.2.0->open-hummingbird-eval==1.0.0) (3.9.0)
+Downloading triton-2.2.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (167.9 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 167.9/167.9 MB 9.0 MB/s eta 0:00:00
+Installing collected packages: triton, open-hummingbird-eval
+  Attempting uninstall: triton
+    Found existing installation: triton 3.2.0
+    Uninstalling triton-3.2.0:
+      Successfully uninstalled triton-3.2.0
+  Running setup.py develop for open-hummingbird-eval
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+torch 2.6.0+cu124 requires triton==3.2.0; platform_system == "Linux" and platform_machine == "x86_64", but you have triton 2.2.0 which is incompatible.
+Successfully installed open-hummingbird-eval-1.0.0 triton-2.2.0
+✅ hbird is now importable

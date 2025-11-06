@@ -1,0 +1,140 @@
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+wandb: Currently logged in as: janhutter (bsarec) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+the script arguments are Namespace(seed=42, batch_size=8, input_size=392, patch_size=14, memory_size=None, model='vggt-1b', embeddings_size=None, vggt_ckpt=None, vggt_hf_id='facebook/VGGT-1B', vggt_normalize=False, data_dir='datasets/mvimgnet', dataset_name='mvimgnet', train_bins='0,15,30', val_bins='45', train_fs_path=None, val_fs_path=None)
+ℹ️  Auto-detected angle bins directory: datasets/split_angles_mvimagenet
+ℹ️  Auto-detected masks directory: datasets/mvimgnet/masks
+✅ MVImgNet Loaded → Train: 11103 | Val: 0
+Augmentation loop:   0%|          | 0/1 [00:00<?, ?it/s]
+Memory Creation loop:   0%|          | 0/1387 [00:00<?, ?it/s][A
+Memory Creation loop:   1%|          | 10/1387 [00:10<24:41,  1.08s/it][A
+Memory Creation loop:   2%|▏         | 23/1387 [00:21<20:51,  1.09it/s][A
+Memory Creation loop:   3%|▎         | 36/1387 [00:32<19:44,  1.14it/s][A
+Memory Creation loop:   4%|▎         | 49/1387 [00:43<19:08,  1.16it/s][A
+Memory Creation loop:   4%|▍         | 62/1387 [00:54<18:44,  1.18it/s][A
+Memory Creation loop:   5%|▌         | 75/1387 [01:04<18:25,  1.19it/s][A
+Memory Creation loop:   6%|▋         | 88/1387 [01:15<18:10,  1.19it/s][A
+Memory Creation loop:   7%|▋         | 101/1387 [01:26<17:56,  1.19it/s][A
+Memory Creation loop:   8%|▊         | 114/1387 [01:37<17:43,  1.20it/s][A
+Memory Creation loop:   9%|▉         | 127/1387 [01:48<17:31,  1.20it/s][A
+Memory Creation loop:  10%|█         | 140/1387 [01:58<17:19,  1.20it/s][A
+Memory Creation loop:  11%|█         | 153/1387 [02:09<17:08,  1.20it/s][A
+Memory Creation loop:  11%|█         | 153/1387 [02:20<17:08,  1.20it/s][A
+Memory Creation loop:  12%|█▏        | 166/1387 [02:20<16:56,  1.20it/s][A
+Memory Creation loop:  13%|█▎        | 179/1387 [02:31<16:45,  1.20it/s][A
+Memory Creation loop:  14%|█▍        | 192/1387 [02:42<16:34,  1.20it/s][A
+Memory Creation loop:  15%|█▍        | 205/1387 [02:52<16:23,  1.20it/s][A
+Memory Creation loop:  16%|█▌        | 218/1387 [03:03<16:12,  1.20it/s][A
+Memory Creation loop:  17%|█▋        | 231/1387 [03:14<16:01,  1.20it/s][A
+Memory Creation loop:  18%|█▊        | 244/1387 [03:25<15:50,  1.20it/s][A
+Memory Creation loop:  19%|█▊        | 257/1387 [03:36<15:39,  1.20it/s][A
+Memory Creation loop:  19%|█▉        | 270/1387 [03:47<15:28,  1.20it/s][A
+Memory Creation loop:  20%|██        | 283/1387 [03:57<15:18,  1.20it/s][A
+Memory Creation loop:  21%|██▏       | 296/1387 [04:08<15:07,  1.20it/s][A
+Memory Creation loop:  22%|██▏       | 309/1387 [04:19<14:56,  1.20it/s][A
+Memory Creation loop:  22%|██▏       | 309/1387 [04:30<14:56,  1.20it/s][A
+Memory Creation loop:  23%|██▎       | 322/1387 [04:30<14:45,  1.20it/s][A
+Memory Creation loop:  24%|██▍       | 335/1387 [04:41<14:34,  1.20it/s][A
+Memory Creation loop:  25%|██▌       | 348/1387 [04:51<14:23,  1.20it/s][A
+Memory Creation loop:  26%|██▌       | 361/1387 [05:02<14:13,  1.20it/s][A
+Memory Creation loop:  27%|██▋       | 374/1387 [05:13<14:02,  1.20it/s][A
+Memory Creation loop:  28%|██▊       | 387/1387 [05:24<13:51,  1.20it/s][A
+Memory Creation loop:  29%|██▉       | 400/1387 [05:35<13:40,  1.20it/s][A
+Memory Creation loop:  30%|██▉       | 413/1387 [05:45<13:29,  1.20it/s][A
+Memory Creation loop:  31%|███       | 426/1387 [05:56<13:19,  1.20it/s][A
+Memory Creation loop:  32%|███▏      | 439/1387 [06:07<13:08,  1.20it/s][A
+Memory Creation loop:  33%|███▎      | 452/1387 [06:18<12:57,  1.20it/s][A
+Memory Creation loop:  34%|███▎      | 465/1387 [06:29<12:46,  1.20it/s][A
+Memory Creation loop:  34%|███▎      | 465/1387 [06:40<12:46,  1.20it/s][A
+Memory Creation loop:  34%|███▍      | 478/1387 [06:40<12:35,  1.20it/s][A
+Memory Creation loop:  35%|███▌      | 491/1387 [06:50<12:24,  1.20it/s][A
+Memory Creation loop:  36%|███▋      | 504/1387 [07:01<12:14,  1.20it/s][A
+Memory Creation loop:  37%|███▋      | 517/1387 [07:12<12:03,  1.20it/s][A
+Memory Creation loop:  38%|███▊      | 530/1387 [07:23<11:52,  1.20it/s][A
+Memory Creation loop:  39%|███▉      | 543/1387 [07:34<11:41,  1.20it/s][A
+Memory Creation loop:  40%|████      | 556/1387 [07:44<11:30,  1.20it/s][A
+Memory Creation loop:  41%|████      | 569/1387 [07:55<11:20,  1.20it/s][A
+Memory Creation loop:  42%|████▏     | 582/1387 [08:06<11:09,  1.20it/s][A
+Memory Creation loop:  43%|████▎     | 595/1387 [08:17<10:58,  1.20it/s][A
+Memory Creation loop:  44%|████▍     | 608/1387 [08:28<10:47,  1.20it/s][A
+Memory Creation loop:  45%|████▍     | 621/1387 [08:38<10:36,  1.20it/s][A
+Memory Creation loop:  46%|████▌     | 634/1387 [08:49<10:25,  1.20it/s][A
+Memory Creation loop:  46%|████▌     | 634/1387 [09:00<10:25,  1.20it/s][A
+Memory Creation loop:  47%|████▋     | 647/1387 [09:00<10:15,  1.20it/s][A
+Memory Creation loop:  48%|████▊     | 660/1387 [09:11<10:04,  1.20it/s][A
+Memory Creation loop:  49%|████▊     | 673/1387 [09:22<09:53,  1.20it/s][A
+Memory Creation loop:  49%|████▉     | 686/1387 [09:32<09:42,  1.20it/s][A
+Memory Creation loop:  50%|█████     | 699/1387 [09:43<09:31,  1.20it/s][A
+Memory Creation loop:  51%|█████▏    | 712/1387 [09:54<09:21,  1.20it/s][A
+Memory Creation loop:  52%|█████▏    | 725/1387 [10:05<09:10,  1.20it/s][A
+Memory Creation loop:  53%|█████▎    | 738/1387 [10:16<08:59,  1.20it/s][A
+Memory Creation loop:  54%|█████▍    | 751/1387 [10:26<08:48,  1.20it/s][A
+Memory Creation loop:  55%|█████▌    | 764/1387 [10:37<08:37,  1.20it/s][A
+Memory Creation loop:  56%|█████▌    | 777/1387 [10:48<08:26,  1.20it/s][A
+Memory Creation loop:  57%|█████▋    | 790/1387 [10:59<08:16,  1.20it/s][A
+Memory Creation loop:  57%|█████▋    | 790/1387 [11:10<08:16,  1.20it/s][A
+Memory Creation loop:  58%|█████▊    | 803/1387 [11:10<08:05,  1.20it/s][A
+Memory Creation loop:  59%|█████▉    | 816/1387 [11:20<07:54,  1.20it/s][A
+Memory Creation loop:  60%|█████▉    | 829/1387 [11:31<07:43,  1.20it/s][A
+Memory Creation loop:  61%|██████    | 842/1387 [11:42<07:32,  1.20it/s][A
+Memory Creation loop:  62%|██████▏   | 855/1387 [11:53<07:22,  1.20it/s][A
+Memory Creation loop:  63%|██████▎   | 868/1387 [12:04<07:11,  1.20it/s][A
+Memory Creation loop:  64%|██████▎   | 881/1387 [12:15<07:00,  1.20it/s][A
+Memory Creation loop:  64%|██████▍   | 894/1387 [12:25<06:49,  1.20it/s][A
+Memory Creation loop:  65%|██████▌   | 907/1387 [12:36<06:38,  1.20it/s][A
+Memory Creation loop:  66%|██████▋   | 920/1387 [12:47<06:28,  1.20it/s][A
+Memory Creation loop:  67%|██████▋   | 933/1387 [12:58<06:17,  1.20it/s][A
+Memory Creation loop:  68%|██████▊   | 946/1387 [13:09<06:06,  1.20it/s][A
+Memory Creation loop:  69%|██████▉   | 959/1387 [13:19<05:56,  1.20it/s][A
+Memory Creation loop:  69%|██████▉   | 959/1387 [13:30<05:56,  1.20it/s][A
+Memory Creation loop:  70%|███████   | 972/1387 [13:30<05:45,  1.20it/s][A
+Memory Creation loop:  71%|███████   | 985/1387 [13:41<05:34,  1.20it/s][A
+Memory Creation loop:  72%|███████▏  | 998/1387 [13:52<05:23,  1.20it/s][A
+Memory Creation loop:  73%|███████▎  | 1011/1387 [14:03<05:12,  1.20it/s][A
+Memory Creation loop:  74%|███████▍  | 1024/1387 [14:13<05:01,  1.20it/s][A
+Memory Creation loop:  75%|███████▍  | 1037/1387 [14:24<04:51,  1.20it/s][A
+Memory Creation loop:  76%|███████▌  | 1050/1387 [14:35<04:40,  1.20it/s][A
+Memory Creation loop:  77%|███████▋  | 1063/1387 [14:46<04:29,  1.20it/s][A
+Memory Creation loop:  78%|███████▊  | 1076/1387 [14:57<04:18,  1.20it/s][A
+Memory Creation loop:  79%|███████▊  | 1089/1387 [15:07<04:07,  1.20it/s][A
+Memory Creation loop:  79%|███████▉  | 1102/1387 [15:18<03:56,  1.20it/s][A
+Memory Creation loop:  80%|████████  | 1115/1387 [15:29<03:46,  1.20it/s][A
+Memory Creation loop:  80%|████████  | 1115/1387 [15:40<03:46,  1.20it/s][A
+Memory Creation loop:  81%|████████▏ | 1128/1387 [15:40<03:35,  1.20it/s][A
+Memory Creation loop:  82%|████████▏ | 1141/1387 [15:51<03:24,  1.20it/s][A
+Memory Creation loop:  83%|████████▎ | 1154/1387 [16:01<03:13,  1.20it/s][A
+Memory Creation loop:  84%|████████▍ | 1167/1387 [16:12<03:02,  1.20it/s][A
+Memory Creation loop:  85%|████████▌ | 1180/1387 [16:23<02:51,  1.20it/s][A
+Memory Creation loop:  86%|████████▌ | 1193/1387 [16:34<02:41,  1.20it/s][A
+Memory Creation loop:  87%|████████▋ | 1206/1387 [16:45<02:30,  1.20it/s][A
+Memory Creation loop:  88%|████████▊ | 1219/1387 [16:56<02:19,  1.20it/s][A
+Memory Creation loop:  89%|████████▉ | 1232/1387 [17:06<02:08,  1.20it/s][A
+Memory Creation loop:  90%|████████▉ | 1245/1387 [17:17<01:57,  1.20it/s][A
+Memory Creation loop:  91%|█████████ | 1258/1387 [17:28<01:47,  1.20it/s][A
+Memory Creation loop:  92%|█████████▏| 1271/1387 [17:39<01:36,  1.20it/s][A
+Memory Creation loop:  93%|█████████▎| 1284/1387 [17:50<01:25,  1.20it/s][A
+Memory Creation loop:  93%|█████████▎| 1284/1387 [18:00<01:25,  1.20it/s][A
+Memory Creation loop:  94%|█████████▎| 1297/1387 [18:00<01:14,  1.20it/s][A
+Memory Creation loop:  94%|█████████▍| 1310/1387 [18:11<01:03,  1.20it/s][A
+Memory Creation loop:  95%|█████████▌| 1323/1387 [18:22<00:53,  1.20it/s][A
+Memory Creation loop:  96%|█████████▋| 1336/1387 [18:33<00:42,  1.20it/s][A
+Memory Creation loop:  97%|█████████▋| 1349/1387 [18:44<00:31,  1.20it/s][A
+Memory Creation loop:  98%|█████████▊| 1362/1387 [18:54<00:20,  1.20it/s][A
+Memory Creation loop:  99%|█████████▉| 1375/1387 [19:05<00:09,  1.20it/s][AMemory Creation loop: 100%|██████████| 1387/1387 [19:15<00:00,  1.20it/s]
+Augmentation loop: 100%|██████████| 1/1 [19:15<00:00, 1155.69s/it]Augmentation loop: 100%|██████████| 1/1 [19:15<00:00, 1155.69s/it]
+[2025-11-05T19:51:35.211] error: Detected 1 oom_kill event in StepId=15778638.0. Some of the step tasks have been OOM Killed.
+srun: error: gcn28: task 0: Out Of Memory
+srun: Terminating StepId=15778638.0

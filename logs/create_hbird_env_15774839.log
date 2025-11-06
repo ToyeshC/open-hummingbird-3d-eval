@@ -1,0 +1,47 @@
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+Defaulting to user installation because normal site-packages is not writeable
+Looking in indexes: https://download.pytorch.org/whl/cu124
+Collecting torch==2.6.0 (from -r requirements.txt (line 10))
+  Obtaining dependency information for torch==2.6.0 from https://download.pytorch.org/whl/cu124/torch-2.6.0%2Bcu124-cp311-cp311-linux_x86_64.whl.metadata
+  Using cached https://download.pytorch.org/whl/cu124/torch-2.6.0%2Bcu124-cp311-cp311-linux_x86_64.whl.metadata (28 kB)
+Collecting torchvision==0.21.0 (from -r requirements.txt (line 11))
+  Obtaining dependency information for torchvision==0.21.0 from https://download.pytorch.org/whl/cu124/torchvision-0.21.0%2Bcu124-cp311-cp311-linux_x86_64.whl.metadata
+  Using cached https://download.pytorch.org/whl/cu124/torchvision-0.21.0%2Bcu124-cp311-cp311-linux_x86_64.whl.metadata (6.1 kB)
+Collecting torchaudio==2.6.0 (from -r requirements.txt (line 12))
+  Obtaining dependency information for torchaudio==2.6.0 from https://download.pytorch.org/whl/cu124/torchaudio-2.6.0%2Bcu124-cp311-cp311-linux_x86_64.whl.metadata
+  Using cached https://download.pytorch.org/whl/cu124/torchaudio-2.6.0%2Bcu124-cp311-cp311-linux_x86_64.whl.metadata (6.6 kB)
+Requirement already satisfied: lightning==2.4.0 in /home/jbibo/.local/lib/python3.11/site-packages (from -r requirements.txt (line 15)) (2.4.0)
+Requirement already satisfied: torchmetrics==1.7.0 in /home/jbibo/.local/lib/python3.11/site-packages (from -r requirements.txt (line 16)) (1.7.0)
+Requirement already satisfied: pyyaml>=5.0 in /sw/arch/RHEL8/EB_production/2023/software/Anaconda3/2023.07-2/lib/python3.11/site-packages (from -r requirements.txt (line 17)) (6.0)
+ERROR: Could not find a version that satisfies the requirement opencv-python (from versions: none)
+ERROR: No matching distribution found for opencv-python
+2025-11-05 14:39:45.439095: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-11-05 14:39:45.536563: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1762349985.578593 4090139 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1762349985.591237 4090139 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2025-11-05 14:39:45.674987: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+✅ All dependencies OK
+# conda environments:
+#
+dl2024                   /home/jbibo/.conda/envs/dl2024
+hbird                 *  /home/jbibo/.conda/envs/hbird
+myenv                    /home/jbibo/.conda/envs/myenv
+tips                     /home/jbibo/.conda/envs/tips
+base                     /sw/arch/RHEL8/EB_production/2023/software/Anaconda3/2023.07-2
+

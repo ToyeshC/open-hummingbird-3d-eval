@@ -1,0 +1,32 @@
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+Obtaining file:///gpfs/home2/jbibo/open-hummingbird-eval
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Requirement already satisfied: joblib==1.4.2 in /home/jbibo/.local/lib/python3.11/site-packages (from open-hummingbird-eval==1.0.0) (1.4.2)
+Requirement already satisfied: scipy==1.15.2 in /home/jbibo/.local/lib/python3.11/site-packages (from open-hummingbird-eval==1.0.0) (1.15.2)
+Requirement already satisfied: triton==3.2.0 in /home/jbibo/.local/lib/python3.11/site-packages (from open-hummingbird-eval==1.0.0) (3.2.0)
+Requirement already satisfied: numpy==1.26.4 in /home/jbibo/.local/lib/python3.11/site-packages (from open-hummingbird-eval==1.0.0) (1.26.4)
+Requirement already satisfied: tqdm==4.67.1 in /home/jbibo/.local/lib/python3.11/site-packages (from open-hummingbird-eval==1.0.0) (4.67.1)
+Installing collected packages: open-hummingbird-eval
+  Attempting uninstall: open-hummingbird-eval
+    Found existing installation: open-hummingbird-eval 1.0.0
+    Uninstalling open-hummingbird-eval-1.0.0:
+      Successfully uninstalled open-hummingbird-eval-1.0.0
+  DEPRECATION: Legacy editable install of open-hummingbird-eval==1.0.0 from file:///gpfs/home2/jbibo/open-hummingbird-eval (setup.py develop) is deprecated. pip 25.3 will enforce this behaviour change. A possible replacement is to add a pyproject.toml or enable --use-pep517, and use setuptools >= 64. If the resulting installation is not behaving as expected, try using --config-settings editable_mode=compat. Please consult the setuptools documentation for more information. Discussion can be found at https://github.com/pypa/pip/issues/11457
+  Running setup.py develop for open-hummingbird-eval
+Successfully installed open-hummingbird-eval-1.0.0
+✅ hbird is now importable

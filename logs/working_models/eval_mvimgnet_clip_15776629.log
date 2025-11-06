@@ -1,0 +1,46 @@
+CUDA_VISIBLE_DEVICES=0,1,2,3
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+2025-11-05 16:09:54.234998: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-11-05 16:09:54.331972: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1762355394.374454  614352 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1762355394.387199  614352 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2025-11-05 16:09:54.472517: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Args: Namespace(seed=42, model_repo='openai/clip-vit-base-patch16', model_name='', d_model=768, revision=None, input_size=512, patch_size=16, data_dir='./datasets/split_angles_mvimagenet', dataset_name='mvimgnet', train_fs_path=None, val_fs_path=None, train_bins='90', val_bins='0', batch_size=64, augmentation_epoch=1, memory_size=None, num_workers=32, n_neighbours=30, nn_method='faiss', nn_params=None, return_knn_details=None)
+Loading model from Hugging Face: openai/clip-vit-base-patch16
+Using DataParallel with 4 GPUs.
+The model does not support automatic embedding interpolation, 
+but manual embedding interpolation will be applied if the input_size provided does not match 
+the input_size on which the model was trained.
+Detected 4 GPUs. Enabling FAISS index sharding.
+📦 MVImgNet → Train bins: ['90']
+📦 MVImgNet → Val bins:   ['0']
+✅ MVImgNet Loaded → Train: 3701 | Val: 0
+Augmentation loop:   0%|          | 0/1 [00:00<?, ?it/s]
+Memory Creation loop:   0%|          | 0/57 [00:00<?, ?it/s][A
+Memory Creation loop:   2%|▏         | 1/57 [00:16<15:40, 16.80s/it][A
+Memory Creation loop:  21%|██        | 12/57 [00:27<01:24,  1.88s/it][A
+Memory Creation loop:  42%|████▏     | 24/57 [00:37<00:42,  1.28s/it][A
+Memory Creation loop:  63%|██████▎   | 36/57 [00:47<00:22,  1.09s/it][A
+Memory Creation loop:  84%|████████▍ | 48/57 [00:58<00:09,  1.00s/it][AMemory Creation loop: 100%|██████████| 57/57 [01:06<00:00,  1.16s/it]
+Augmentation loop: 100%|██████████| 1/1 [01:06<00:00, 66.14s/it]Augmentation loop: 100%|██████████| 1/1 [01:06<00:00, 66.14s/it]
+Using shard index
+✅ MVImgNet Loaded → Train: 0 | Val: 3701
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+[2025-11-05T16:14:37.013] error: *** JOB 15776629 ON gcn61 CANCELLED AT 2025-11-05T16:14:37 DUE TO TIME LIMIT ***
+Evaluation loop:   0%|          | 0/57 [00:00<?, ?it/s]Evaluation loop:   2%|▏         | 1/57 [00:29<27:53, 29.89s/it]Evaluation loop:   4%|▎         | 2/57 [00:52<23:22, 25.50s/it]Evaluation loop:   5%|▌         | 3/57 [01:14<21:38, 24.04s/it]Evaluation loop:   7%|▋         | 4/57 [01:36<20:38, 23.37s/it]Evaluation loop:   9%|▉         | 5/57 [01:59<19:55, 22.99s/it]Evaluation loop:  11%|█         | 6/57 [02:21<19:20, 22.76s/it]Evaluation loop:  12%|█▏        | 7/57 [02:43<18:50, 22.61s/it][2025-11-05T16:14:37.014] error: *** STEP 15776629.0 ON gcn61 CANCELLED AT 2025-11-05T16:14:37 DUE TO TIME LIMIT ***

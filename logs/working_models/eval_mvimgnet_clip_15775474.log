@@ -1,0 +1,53 @@
+CUDA_VISIBLE_DEVICES=0,1,2,3
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+2025-11-05 15:36:35.025439: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-11-05 15:36:35.167406: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1762353395.218914 2024789 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1762353395.232577 2024789 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2025-11-05 15:36:35.333139: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Args: Namespace(seed=42, model_repo='openai/clip-vit-base-patch16', model_name='', d_model=768, revision=None, input_size=512, patch_size=16, data_dir='./datasets/split_angles_mvimagenet', dataset_name='mvimgnet', train_fs_path=None, val_fs_path=None, train_bins='90', val_bins='0', batch_size=64, augmentation_epoch=1, memory_size=None, num_workers=32, n_neighbours=30, nn_method='faiss', nn_params=None, return_knn_details=None)
+Loading model from Hugging Face: openai/clip-vit-base-patch16
+Using DataParallel with 4 GPUs.
+The model does not support automatic embedding interpolation, 
+but manual embedding interpolation will be applied if the input_size provided does not match 
+the input_size on which the model was trained.
+Detected 4 GPUs. Enabling FAISS index sharding.
+📦 MVImgNet → Train bins: ['90']
+📦 MVImgNet → Val bins:   ['0']
+Traceback (most recent call last):
+  File "/gpfs/home2/jbibo/open-hummingbird-eval/python_scripts/run_eval.py", line 536, in <module>
+    main()
+  File "/gpfs/home2/jbibo/open-hummingbird-eval/python_scripts/run_eval.py", line 484, in main
+    hbird_miou_list = hbird_evaluation(
+                      ^^^^^^^^^^^^^^^^^
+  File "/gpfs/home2/jbibo/open-hummingbird-eval/hbird/hbird_eval.py", line 608, in hbird_evaluation
+    dataset = MVImgNetDataModule(
+              ^^^^^^^^^^^^^^^^^^^
+  File "/gpfs/home2/jbibo/open-hummingbird-eval/hbird/data/mvimgnet_data.py", line 58, in __init__
+    class_dirs = [p for p in self.data_dir.iterdir() if p.is_dir() and p.name.isdigit()]
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/gpfs/home2/jbibo/open-hummingbird-eval/hbird/data/mvimgnet_data.py", line 58, in <listcomp>
+    class_dirs = [p for p in self.data_dir.iterdir() if p.is_dir() and p.name.isdigit()]
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jbibo/.conda/envs/hbird/lib/python3.11/pathlib.py", line 931, in iterdir
+    for name in os.listdir(self):
+                ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'datasets/split_angles_mvimagenet'
+srun: error: gcn57: task 0: Exited with exit code 1
+srun: Terminating StepId=15775474.0
