@@ -17,7 +17,7 @@ from hbird.hbird_eval import hbird_evaluation
 # RESULTS_PATH = 'results/results_exp_a_500_sharding_batch4_workers8_dataparallel_memory320000_new.csv'
 # RESULTS_PATH = 'results/results_exp_a_500_sharding_batch4_workers8_dataparallel_memory10240000_new.csv'  # this is the original memory size used in the paper
 # RESULTS_PATH = 'results/results_exp_a_500_sharding_batch4_workers8_dataparallel_memory1024000_new.csv'
-RESULTS_PATH = "results/results_exp_a_500_sharding_batch4_workers8_dataparallel_memory640000_new.csv"
+RESULTS_PATH = "results/results_exp_a_500_sharding_batch4_workers8_dataparallel_new.csv"
 JOB_ID = os.environ.get("SLURM_JOB_ID")
 VAL_BINS = [0, 15, 30, 45, 60, 75, 90]
 TRAIN_BIN_LISTS = [
