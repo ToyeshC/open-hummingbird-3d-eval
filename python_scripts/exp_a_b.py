@@ -4,12 +4,13 @@ import argparse
 import numpy as np
 import csv
 import torch
-import tqdm
+from tqdm import tqdm
 
 from hbird.hbird_eval import hbird_evaluation
 from hbird.utils.repro import seed_everything
 from hbird.utils.feature_extractors import token_features
 from hbird.utils.loading_models import load_model
+from hbird.utils.feature_extractors import load_vggt, VGGTFeatureExtractor
 
 # RESULTS_PATH = 'results/results_exp_a_500_sharding_batch4_workers8_dataparallel_memory10240000_new.csv'  # this is the original memory size used in the paper
 # RESULTS_PATH = 'results/results_exp_a_500_sharding_batch4_workers8_dataparallel_memory1024000_new.csv'
@@ -128,6 +129,25 @@ def parse_args():
 
     parser.add_argument("--job_id", default=None, help="job_id of job")
 
+    # VGGT-specific arguments
+    parser.add_argument(
+        "--vggt_hf_id",
+        default=None,
+        type=str,
+        help="Hugging Face model id for VGGT (e.g. facebook/VGGT-1B)",
+    )
+    parser.add_argument(
+        "--vggt_ckpt",
+        default=None,
+        type=str,
+        help="Optional path to a local VGGT checkpoint (.pt/.pth)",
+    )
+    parser.add_argument(
+        "--vggt_normalize",
+        action="store_true",
+        help="Apply VGGT-specific normalization if required",
+    )
+
     return parser.parse_args()
 
 
@@ -136,13 +156,44 @@ def main():
     print("Args:", args)
 
     seed_everything(args.seed)
-    model = load_model(args)
-    if (
-        torch.cuda.device_count() > 1
-    ):  # make all GPUs work in parallel on the batch (if more than 1 GPU is available)
-        print(f"Using DataParallel with {torch.cuda.device_count()} GPUs.")
-        model = torch.nn.DataParallel(model)
-    model = model.to(DEVICE)  # move model to GPU(s)
+    feature_extractor = None
+
+    if args.model_repo and "vggt" in args.model_repo.lower():
+        print(f"Loading VGGT model via VGGT loader: repo={args.model_repo}, name={args.model_name}")
+        backbone = args.model_name or "vggt-1b"
+        hf_id = args.vggt_hf_id or args.model_repo or "facebook/VGGT-1B"
+        if args.patch_size is None:
+            args.patch_size = 14
+        else:
+            assert args.patch_size == 14, "VGGT checkpoint expects patch size 14"
+        vggt_model = load_vggt(
+            backbone=backbone,
+            ckpt_path=args.vggt_ckpt,
+            hf_model_id=hf_id,
+            device=DEVICE,
+        )
+        eval_spatial_resolution = args.input_size // args.patch_size
+        feature_extractor = VGGTFeatureExtractor(
+            vggt_model,
+            eval_spatial_resolution=eval_spatial_resolution,
+            d_model=None,
+            normalize=args.vggt_normalize,
+        )
+        with torch.no_grad():
+            dummy = torch.zeros(1, 3, args.input_size, args.input_size, device=DEVICE)
+            feature_extractor.forward_features(dummy)
+        if args.d_model is None:
+            args.d_model = feature_extractor.d_model
+        print(f"[VGGT] Detected patch embedding dimension: {args.d_model}")
+        model = vggt_model.to(DEVICE)
+    else:
+        model = load_model(args)
+        if (
+            torch.cuda.device_count() > 1
+        ):  # make all GPUs work in parallel on the batch (if more than 1 GPU is available)
+            print(f"Using DataParallel with {torch.cuda.device_count()} GPUs.")
+            model = torch.nn.DataParallel(model)
+        model = model.to(DEVICE)  # move model to GPU(s)
 
     if not os.path.exists(RESULTS_PATH):
         os.makedirs("results", exist_ok=True)
@@ -185,7 +236,7 @@ def main():
             nn_method=args.nn_method,
             n_neighbours=args.n_neighbours,
             nn_params=nn_params,
-            ftr_extr_fn=token_features_fn,
+            ftr_extr_fn=None if feature_extractor is not None else token_features_fn,
             dataset_name=args.dataset_name,
             data_dir=f"{args.data_dir}",
             memory_size=args.memory_size,
@@ -194,6 +245,7 @@ def main():
             val_fs_path=args.val_fs_path,
             train_bins=train_bins,
             val_bins=VAL_BINS,
+            feature_extractor=feature_extractor,
         )
 
         train_str = "_".join(str(x) for x in sorted(train_bins))

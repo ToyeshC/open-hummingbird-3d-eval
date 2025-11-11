@@ -1,0 +1,41 @@
+#!/bin/bash
+#SBATCH --output=logs/exp_a_b/%x_%j.log
+#SBATCH --partition=gpu_a100
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --gpus=4
+#SBATCH --cpus-per-task=64
+#SBATCH --time=04:00:00
+
+module purge
+module load 2023
+module load Miniconda3/23.5.2-0
+
+eval "$(/sw/arch/RHEL8/EB_production/2023/software/Miniconda3/23.5.2-0/bin/conda shell.bash hook)"
+conda activate hbird
+
+# srun python python_scripts/exp_a_b.py \
+#   --model_repo facebook/VGGT-1B \
+#   --model_name vggt-1b \
+#   --vggt_hf_id facebook/VGGT-1B \
+#   --num_workers 8 \
+#   --batch_size 4 \
+#   --input_size 504 \
+#   --patch_size 14 \
+#   --nn_method faiss \
+#   --n_neighbours 30 \
+#   --augmentation_epoch 1 \
+#   --dataset_name mvimgnet \
+#   --data_dir datasets/split_angles_mvimagenet \
+#   --memory_size 640000
+
+srun python python_scripts/exp_a_b.py \
+  --model_repo facebook/VGGT-1B \
+  --model_name vggt-1b \
+  --vggt_hf_id facebook/VGGT-1B \
+  --dataset_name "mvimgnet*0.02" \
+  --data_dir datasets/split_angles_mvimagenet \
+  --memory_size 50000 \
+  --num_workers 4 \
+  --batch_size 1 \
+  --input_size 336

@@ -345,15 +345,24 @@ class HbirdEvaluation():
             tuple: Nearest key features and labels.
         """
         bs, num_patches, d_k = q.shape
-        reshaped_q = q.reshape(bs*num_patches, d_k)
-        # neighbors, distances = self.NN_algorithm.search_batched(reshaped_q)
-        neighbors, distances = self.NN_algorithm.find_nearest_neighbors(reshaped_q)
-        neighbors = neighbors.astype(np.int64)
-        neighbors = torch.from_numpy(neighbors).cpu()
-        neighbors = neighbors.flatten()
-        key_features = self.feature_memory[neighbors]
+        if self.nn_method == 'scann':
+            neighbors, distances = self.NN_algorithm.find_nearest_neighbors(q)
+        else:
+            reshaped_q = q.reshape(bs*num_patches, d_k)
+            neighbors, distances = self.NN_algorithm.find_nearest_neighbors(reshaped_q)
+
+        neighbors = np.asarray(neighbors)
+        if neighbors.ndim == 2 and neighbors.shape[0] == bs * num_patches:
+            neighbors = neighbors.reshape(bs, num_patches, self.n_neighbours)
+        elif neighbors.ndim == 3 and neighbors.shape[0] == bs and neighbors.shape[1] == num_patches:
+            pass
+        else:
+            raise ValueError(f"Unexpected neighbors shape {neighbors.shape}; expected {(bs*num_patches, self.n_neighbours)} or {(bs, num_patches, self.n_neighbours)}")
+
+        neighbors_t = torch.from_numpy(neighbors.astype(np.int64)).cpu()
+        key_features = self.feature_memory[neighbors_t.reshape(-1)]
         key_features = key_features.reshape(bs, num_patches, self.n_neighbours, -1)
-        key_labels = self.label_memory[neighbors]
+        key_labels = self.label_memory[neighbors_t.reshape(-1)]
         key_labels = key_labels.reshape(bs, num_patches, self.n_neighbours, -1)
         return key_features, key_labels
 
@@ -445,7 +454,8 @@ class HbirdEvaluation():
 
 def hbird_evaluation(model, d_model, patch_size, dataset_name:str, data_dir:str, batch_size=64, input_size=224, 
                         augmentation_epoch=1, device='cpu', return_knn_details=False, n_neighbours=30, nn_method='scann', nn_params=None, 
-                        ftr_extr_fn=None, memory_size=None, num_workers=8, ignore_index=255, train_fs_path=None, val_fs_path=None, train_bins=None, val_bins=None):
+                        ftr_extr_fn=None, memory_size=None, num_workers=8, ignore_index=255, train_fs_path=None, val_fs_path=None, train_bins=None, val_bins=None,
+                        feature_extractor=None, angle_bins_dir=None, masks_dir=None):
     """
     Performs evaluation of the Hbird model on a specified dataset.
 
@@ -477,10 +487,12 @@ def hbird_evaluation(model, d_model, patch_size, dataset_name:str, data_dir:str,
     """
     eval_spatial_resolution = input_size // patch_size
 
-    if ftr_extr_fn is None:
-        feature_extractor = FeatureExtractor(model, eval_spatial_resolution=eval_spatial_resolution, d_model=d_model)
-    else:
-        feature_extractor = FeatureExtractorSimple(model, ftr_extr_fn=ftr_extr_fn, eval_spatial_resolution=eval_spatial_resolution, d_model=d_model)
+    # Determine feature extractor: use provided one (e.g., VGGT) or wrap the model
+    if feature_extractor is None:
+        if ftr_extr_fn is None:
+            feature_extractor = FeatureExtractor(model, eval_spatial_resolution=eval_spatial_resolution, d_model=d_model)
+        else:
+            feature_extractor = FeatureExtractorSimple(model, ftr_extr_fn=ftr_extr_fn, eval_spatial_resolution=eval_spatial_resolution, d_model=d_model)
     train_transforms_dict = get_hbird_train_transforms(input_size)
     val_transforms_dict = get_hbird_val_transforms(input_size)
 
@@ -614,6 +626,7 @@ def hbird_evaluation(model, d_model, patch_size, dataset_name:str, data_dir:str,
             batch_size=batch_size,
             num_workers=num_workers,
             return_masks=True,
+            # angle_bins_dir and masks_dir are auto-detected inside MVImgNetDataModule in current codebase
         )
         dataset.setup()
         # The default ignore_index=-1 is used to not ignore any class
@@ -644,6 +657,7 @@ def hbird_evaluation(model, d_model, patch_size, dataset_name:str, data_dir:str,
                 batch_size=batch_size,
                 num_workers=num_workers,
                 return_masks=True,
+                # angle_bins_dir and masks_dir are auto-detected inside MVImgNetDataModule in current codebase
             )
             val_bin_dataset.setup()
             val_bin_loader = val_bin_dataset.val_dataloader()
