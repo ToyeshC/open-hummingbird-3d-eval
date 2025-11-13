@@ -1,9 +1,11 @@
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from PIL import Image
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader, Dataset
+import torch
 
 
 class MVImgNetDataModule(pl.LightningDataModule):
@@ -35,6 +37,7 @@ class MVImgNetDataModule(pl.LightningDataModule):
         return_masks: bool = True,  # ToDo: the default is false for other datasets
         shuffle: bool = False,
         drop_last: bool = True,
+        sequence_length: int = 1,
     ):
         super().__init__()
         self.data_dir = Path(data_dir)
@@ -47,9 +50,11 @@ class MVImgNetDataModule(pl.LightningDataModule):
         self.return_masks = return_masks
         self.shuffle = shuffle
         self.drop_last = drop_last
+        self.sequence_length = sequence_length
 
         self.train_dataset = None
         self.val_dataset = None
+        self.object_to_views: Optional[Dict[str, List[Tuple[Path, Path]]]] = None
 
         # Manually defined expected classes
         self.classes = [7, 8, 19, 46, 57, 60, 70, 99, 100, 113, 125, 126, 152, 166, 196]  # 15 classes
@@ -87,6 +92,9 @@ class MVImgNetDataModule(pl.LightningDataModule):
     def setup(self, stage: Optional[str] = None):
         
         # Construct "training" dataset only if train_bins is provided
+        if self.sequence_length > 1 and self.object_to_views is None:
+            self.object_to_views = self._build_object_to_views()
+
         if self.train_bins is not None:
             train_bin_paths = [
                 self.data_dir / str(class_id) / str(bin)
@@ -100,6 +108,8 @@ class MVImgNetDataModule(pl.LightningDataModule):
                 transforms=self.train_transforms,
                 return_masks=self.return_masks,
                 class_to_index=self.class_to_index,
+                sequence_length=self.sequence_length,
+                object_to_views=self.object_to_views,
             )
         else:
             self.train_dataset = []
@@ -118,6 +128,8 @@ class MVImgNetDataModule(pl.LightningDataModule):
                 transforms=self.val_transforms,
                 return_masks=self.return_masks,
                 class_to_index=self.class_to_index,
+                sequence_length=self.sequence_length,
+                object_to_views=self.object_to_views,
             )
         else:
             self.val_dataset = []
@@ -143,6 +155,30 @@ class MVImgNetDataModule(pl.LightningDataModule):
             drop_last=self.drop_last,
             pin_memory=True,
         )
+
+    def _build_object_to_views(self) -> Dict[str, List[Tuple[Path, Path]]]:
+        """
+        Build a mapping from object IDs to all available (image, mask) pairs across bins.
+        Assumes the directory structure <class_id>/<angle_bin>/{img, mask}/filename.
+        """
+        mapping: Dict[str, List[Tuple[Path, Path]]] = defaultdict(list)
+        for class_dir in self.data_dir.iterdir():
+            if not class_dir.is_dir() or not class_dir.name.isdigit():
+                continue
+            for angle_dir in class_dir.iterdir():
+                if not angle_dir.is_dir():
+                    continue
+                img_dir = angle_dir / "img"
+                mask_dir = angle_dir / "mask"
+                if not img_dir.exists():
+                    continue
+                for img_path in img_dir.glob("*.jpg"):
+                    mask_path = mask_dir / f"{img_path.name}.png"
+                    if self.return_masks and not mask_path.is_file():
+                        continue
+                    object_id = img_path.stem.split("_")[0]
+                    mapping[object_id].append((img_path, mask_path))
+        return mapping
     
 
 class MVImgNetDataset(Dataset):
@@ -175,43 +211,72 @@ class MVImgNetDataset(Dataset):
         transforms: Optional[Callable] = None,
         return_masks: bool = True,  # ToDo: the default is false for other classes
         class_to_index: Dict[str, int] = None,
+        sequence_length: int = 1,
+        object_to_views: Optional[Dict[str, List[Tuple[Path, Path]]]] = None,
     ):
         self.bin_paths = [Path(p) for p in bin_paths]
         self.transforms = transforms
         self.return_masks = return_masks
         self.class_to_index = class_to_index
+        self.sequence_length = sequence_length
+        self.object_to_views = object_to_views if object_to_views is not None else {}
         self.images, self.masks = self._collect()
 
     def __len__(self) -> int:
         return len(self.images)
     
     def __getitem__(self, index: int) -> Tuple[Any, Any]:
-        img = Image.open(self.images[index]).convert("RGB")
+        img_path = self.images[index]
+        img = Image.open(img_path).convert("RGB")
         mask = Image.open(self.masks[index]) if self.return_masks else None  # values in [0,255]
+
+        if self.sequence_length <= 1:
+            if self.transforms:
+                if self.return_masks:
+                    img, mask = self.transforms(img, mask)
+                    mask = (mask > 0).float()
+                    class_index = self._get_class_index(img_path)
+                    mask = mask * class_index / 255.0
+                else:
+                    img = self.transforms(img)
+            return (img, mask) if mask is not None else img
+
+        # Multi-view mode
+        object_id = img_path.stem.split("_")[0]
+        views = self.object_to_views.get(object_id, [])
+        # Ensure query frame is first
+        views = sorted(views, key=lambda x: x[0])
+        # Separate query from support
+        support_views = [view for view in views if view[0] != img_path]
+
+        required_support = max(self.sequence_length - 1, 0)
+        if len(support_views) >= required_support:
+            selected_supports = support_views[:required_support]
+        else:
+            # if not enough views, pad with the query frame (duplicate)
+            selected_supports = support_views + [views[0]] * (required_support - len(support_views))
+
+        sequence_images = []
 
         if self.transforms:
             if self.return_masks:
                 img, mask = self.transforms(img, mask)
-
-                # Convert mask to binary so that values are in {0, 1}.
-                # The masks contain values between 0 and 255, but we are not interested
-                # in "0.3 object", so we consider an object everything that is above 0.
-                # The threshold is chosen based on dataset inspection (see mvimgnet_masks_vs_preds.ipynb).
-                mask = (mask > 0).float() 
-
-                # Convert mask to multi-class format so that:
-                # background = 0; object belongs to (0,1) depending on the class index
-                # It is important that the object is not 1.
-                path_to_img = self.images[index]
-                class_index = self._get_class_index(path_to_img)  # in [0, N-1]
-                # Division of the mask by 255 is done to avoid mask values of an object to become 1.
-                # See the create_memory() function for more details.
+                mask = (mask > 0).float()
+                class_index = self._get_class_index(img_path)
                 mask = mask * class_index / 255.0
-
             else:
                 img = self.transforms(img)
+        sequence_images.append(img)
 
-        return (img, mask) if mask is not None else img
+        for support_img_path, _ in selected_supports:
+            support_img = Image.open(support_img_path).convert("RGB")
+            dummy_mask = Image.new("L", support_img.size, color=0)
+            if self.transforms:
+                support_img, _ = self.transforms(support_img, dummy_mask)
+            sequence_images.append(support_img)
+
+        stacked = torch.stack(sequence_images, dim=0)
+        return (stacked, mask) if mask is not None else stacked
     
     # Internal methods:
 

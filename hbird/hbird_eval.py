@@ -397,8 +397,17 @@ class HbirdEvaluation():
             for i, (x, y) in enumerate(tqdm(val_loader, desc='Evaluation loop')):
                 x = x.to(self.device)
 
-                input_lis.append(x)
-                _, _, h, w = x.shape
+                if x.dim() == 5:
+                    # Shape: (B, S, C, H, W)
+                    query_view = x[:, 0]
+                    h = query_view.shape[-2]
+                    w = query_view.shape[-1]
+                    input_lis.append(query_view.cpu())
+                else:
+                    h = x.shape[-2]
+                    w = x.shape[-1]
+                    input_lis.append(x.cpu())
+
                 features, _ = self.feature_extractor.forward_features(x)
                 features = features.cpu()
                 y = (y * 255).long()
@@ -455,7 +464,7 @@ class HbirdEvaluation():
 def hbird_evaluation(model, d_model, patch_size, dataset_name:str, data_dir:str, batch_size=64, input_size=224, 
                         augmentation_epoch=1, device='cpu', return_knn_details=False, n_neighbours=30, nn_method='scann', nn_params=None, 
                         ftr_extr_fn=None, memory_size=None, num_workers=8, ignore_index=255, train_fs_path=None, val_fs_path=None, train_bins=None, val_bins=None,
-                        feature_extractor=None, angle_bins_dir=None, masks_dir=None):
+                        feature_extractor=None, angle_bins_dir=None, masks_dir=None, sequence_length=1):
     """
     Performs evaluation of the Hbird model on a specified dataset.
 
@@ -626,7 +635,7 @@ def hbird_evaluation(model, d_model, patch_size, dataset_name:str, data_dir:str,
             batch_size=batch_size,
             num_workers=num_workers,
             return_masks=True,
-            # angle_bins_dir and masks_dir are auto-detected inside MVImgNetDataModule in current codebase
+            sequence_length=sequence_length,
         )
         dataset.setup()
         # The default ignore_index=-1 is used to not ignore any class
@@ -657,7 +666,7 @@ def hbird_evaluation(model, d_model, patch_size, dataset_name:str, data_dir:str,
                 batch_size=batch_size,
                 num_workers=num_workers,
                 return_masks=True,
-                # angle_bins_dir and masks_dir are auto-detected inside MVImgNetDataModule in current codebase
+                sequence_length=sequence_length,
             )
             val_bin_dataset.setup()
             val_bin_loader = val_bin_dataset.val_dataloader()
