@@ -38,7 +38,7 @@ srun python python_scripts/run_eval.py \
   --n_neighbours 30 \
   --augmentation_epoch 1 \
   --dataset_name mvimgnet \
-  --data_dir ./datasets/split_angles_mvimagenet \
+  --data_dir ./datasets/split_angles_mvimgnet \
   --train_bins 90 \
   --val_bins 0 \
   --num_workers 8
